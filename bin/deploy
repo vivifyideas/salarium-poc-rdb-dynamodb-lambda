@@ -1,0 +1,23 @@
+#!/bin/bash
+
+deploy_rds () {
+  set -o errexit -o xtrace
+  echo -n "Enter database name > "
+  read dbname
+  echo -n "Enter database user > "
+  read dbuser
+  echo -n "Enter database password > "
+  read dbpassword
+  echo -n "Enter stack name"
+  read stackname
+
+  aws cloudformation deploy --stack-name $stackname --template-file $PWD/rds/rds_mysql.yaml --capabilities CAPABILITY_NAMED_IAM --parameter-overrides DBName=$dbname DBUser=$dbuser DBPassword=$dbpassword
+  set +x
+}
+
+read -p "Deploy RDS? " -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+  deploy_rds
+fi
