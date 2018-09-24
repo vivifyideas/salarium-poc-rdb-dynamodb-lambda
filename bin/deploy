@@ -11,7 +11,36 @@ deploy_rds () {
   echo -n "Enter stack name"
   read stackname
 
-  aws cloudformation deploy --stack-name $stackname --template-file $PWD/rds/rds_mysql.yaml --capabilities CAPABILITY_NAMED_IAM --parameter-overrides DBName=$dbname DBUser=$dbuser DBPassword=$dbpassword
+  aws cloudformation deploy --stack-name $stackname --template-file $PWD/rds/rds_mysql.yaml \
+  --capabilities CAPABILITY_NAMED_IAM --parameter-overrides DBName=$dbname \
+  DBUser=$dbuser DBPassword=$dbpassword
+  set +x
+}
+
+deploy_dynamodb () {
+  set -o errexit -o xtrace
+  echo -n "Enter stack name"
+  read stackname
+
+  echo -n "Enter table name"
+  read tablename
+
+  echo -n "Enter HashType PrimaryKey Name"
+  read hashkeyelementname
+
+  echo -n "Enter HashType PrimaryKey Type"
+  read hashkeyelementtype
+
+  echo -n "Enter Provisioned read throughput"
+  read readcapacityunits
+
+  echo -n "Enter Provisioned write throughput"
+  read writecapacityunits
+
+  aws cloudformation deploy --stack-name $stackname --template-file $PWD/dynamodb/dynamodb_table.yaml \
+  --capabilities CAPABILITY_NAMED_IAM --parameter-overrides TableName=$tablename \
+  HashKeyElementName=$hashkeyelementname HashKeyElementType=$hashkeyelementtype \
+  ReadCapacityUnits=$readcapacityunits WriteCapacityUnits=$writecapacityunits
   set +x
 }
 
@@ -20,4 +49,11 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
   deploy_rds
+fi
+
+read -p "Deploy DynamoDB? " -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+  deploy_dynamodb
 fi
