@@ -1,7 +1,6 @@
 #!/bin/bash
 
 deploy_rds () {
-  set -o errexit -o xtrace
   echo -n "Enter database name > "
   read dbname
   echo -n "Enter database user > "
@@ -11,6 +10,7 @@ deploy_rds () {
   echo -n "Enter stack name"
   read stackname
 
+  set -o errexit -o xtrace
   aws cloudformation deploy --stack-name $stackname --template-file $PWD/rds/rds_mysql.yaml \
   --capabilities CAPABILITY_NAMED_IAM --parameter-overrides DBName=$dbname \
   DBUser=$dbuser DBPassword=$dbpassword
@@ -18,29 +18,42 @@ deploy_rds () {
 }
 
 deploy_dynamodb () {
-  set -o errexit -o xtrace
-  echo -n "Enter stack name"
+  echo -n "Enter stack name > "
   read stackname
 
-  echo -n "Enter table name"
+  echo -n "Enter table name > "
   read tablename
 
-  echo -n "Enter HashType PrimaryKey Name"
+  echo -n "Enter HashType PrimaryKey Name > "
   read hashkeyelementname
 
-  echo -n "Enter HashType PrimaryKey Type"
+  echo -n "Enter HashType PrimaryKey Type > "
   read hashkeyelementtype
 
-  echo -n "Enter Provisioned read throughput"
+  echo -n "Enter Provisioned read throughput > "
   read readcapacityunits
 
-  echo -n "Enter Provisioned write throughput"
+  echo -n "Enter Provisioned write throughput > "
   read writecapacityunits
 
+  set -o errexit -o xtrace
   aws cloudformation deploy --stack-name $stackname --template-file $PWD/dynamodb/dynamodb_table.yaml \
   --capabilities CAPABILITY_NAMED_IAM --parameter-overrides TableName=$tablename \
   HashKeyElementName=$hashkeyelementname HashKeyElementType=$hashkeyelementtype \
   ReadCapacityUnits=$readcapacityunits WriteCapacityUnits=$writecapacityunits
+  set +x
+}
+
+deploy_lambda () {
+  echo -n "Enter S3 bucket name > "
+  read bucketname
+
+  echo -n "Enter stack name > "
+  read stackname
+
+  set -o xtrace
+  sam package --template-file $PWD/lambda/template.yaml --s3-bucket $bucketname --output-template-file packaged-template.yaml
+  sam deploy --template-file packaged-template.yaml --stack-name $stackname --capabilities CAPABILITY_IAM
   set +x
 }
 
@@ -56,4 +69,11 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
   deploy_dynamodb
+fi
+
+read -p "Deploy Lambda? " -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+  deploy_lambda
 fi

@@ -1,0 +1,28 @@
+Metadata:
+  License: Apache-2.0
+Description:
+  'AWS CloudFormation Template Lambda handler: This template demonstrates
+  the creation of a API Gateway and Lambda function. **WARNING** This template creates an Amazon DynamoDB
+  table. You will be billed for the AWS resources used if you create a stack from
+  this template.'
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  SalariumPocApi:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: lambda.lambda_handler
+      Runtime: python2.7
+      MemorySize: 128
+      Timeout: 3
+      Events:
+        Endpoint:
+          Type: Api
+          Properties:
+            Path: /example-endpoint
+            Method: get
+
+Outputs:
+  endpoint:
+    Description: The API Gateway endpoint for invoking the API
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com'
